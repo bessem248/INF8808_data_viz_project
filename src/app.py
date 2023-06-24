@@ -17,7 +17,9 @@ import stacked_area_chart
 from back_to_back_bar import back_to_back, distribution_language
 from sunburstchart import sunburst
 from radar_chart import init_figure, update_graph
+import flask
 
+server = flask.Flask(__name__)
 
 # Load the dataset
 df = pd.read_csv("assets/data/thesesMemoiresQC2000-2022-v20230508-1.csv", na_values="?")
@@ -40,7 +42,7 @@ stacked_bar_down_options = [
                     ]
 
 # Create the Dash app
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, server=server)
 
 # Navbar
 navbar = html.Nav(
@@ -150,7 +152,7 @@ def render_page_content(pathname):
         return html.Div(
             className="home-content",
             children=[
-                html.H1("Tracer les horizons du savoir : Un parcours visuel de la diversité des recherches au Québec"),
+                html.H1("Tracer les horizons du savoir : Un parcours visuel de la recherche supérieure au Québec"),
                 html.P("This is a sample home page created using Dash."),
                 html.H2("Quebec's universities have become renowned hubs of academic excellence, attracting a diverse array of students from around the world. Our project endeavors to visually explore the rich tapestry of theses and dissertations produced within these institutions. By analyzing trends and changes over time, we aim to uncover valuable insights into the landscape of graduate studies. The project's dashboard provides information on degree distributions, university affiliations, and disciplinary patterns from 2000 to 2022. Our target users include researchers, university administrators, libraries, funding institutions, research consultants, academic publications, graduate students, prospective students, and the general public. By gaining a deeper understanding of the research landscape, users can make informed decisions, track emerging trends, and contribute to the advancement of knowledge in Quebec's academic community."),
                 html.P(
@@ -582,4 +584,4 @@ def update_radar_chart(n_clicks, dropdown_univ_discipline_value):
         return figure
     else:
         default_figure = init_figure()
-        return default_figure        
+        return default_figure       
