@@ -11,10 +11,10 @@ def get_hover_discipline():
 
 def get_hover_stacked_area_chart(mode):
     if mode == 'count':
-        hover_temp = '<b>Année:</b> %{x}<br><b>Nombre de publications:</b> %{y}<br><b>Top 5 des disciplines:</b> %{customdata[0]}'
+        hover_temp = '<b>Année:</b> %{x}<br><b>Nombre de publications:</b> %{y}<br><b>Les 5 disciplines les plus importantes:</b> %{customdata[0]}'
         return hover_temp
     else:
-        hover_temp = '<b>Année:</b> %{x}<br><b>Pourc. de publications:</b> %{y}%<br><b>Top 5 des disciplines:</b> %{customdata[0]}'
+        hover_temp = '<b>Année:</b> %{x}<br><b>Pourc. de publications:</b> %{y}%<br><b>Les 5 disciplines les plus importantes:</b> %{customdata[0]}'
         return hover_temp
 
 def get_hover_stacked_bar_chart(): 
@@ -23,8 +23,8 @@ def get_hover_stacked_bar_chart():
 
 def get_hover_box_plot(name_text=None):
     if name_text is None: 
-        return "Year: %{x}<br>Number of Pages: %{y}<extra></extra>"
-    return "Year: %{x}<br>Number of Pages: %{y}<br>Grade: "+ name_text + "<extra></extra>"
+        return "Année: %{x}<br>Nombre de Pages: %{y}<extra></extra>"
+    return "Année: %{x}<br>Nombre de Pages: %{y}<br>Grade: "+ name_text + "<extra></extra>"
 
 def get_hover_sunburst_chart_langue():
     hover_temp = "<b>%{label}</b><br><b>Nombre de publications:</b> %{value}<extra></extra>"
