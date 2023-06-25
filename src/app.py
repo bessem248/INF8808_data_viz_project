@@ -17,7 +17,6 @@ import stacked_area_chart
 from back_to_back_bar import back_to_back, distribution_language
 from sunburstchart import sunburst
 from radar_chart import init_figure, update_graph
-import flask
 
 server = flask.Flask(__name__)
 
@@ -25,14 +24,16 @@ server = flask.Flask(__name__)
 df = pd.read_csv("assets/data/thesesMemoiresQC2000-2022-v20230508-1.csv", na_values="?")
 df = preproc.to_lowercase(df)
 df = preproc.assign_and_range_pages(df)
+df = preproc.rename_inclassable(df)
 df = preproc.delete_unecessary_columns(df)
 df = preproc.delete_duplicate_disciplines(df)
+
 
 # Update labels of stacked bar chart
 stackedbar_default_options = [
                         {'label': 'Sciences Humaines', 'value': 'sciences humaines'},
                         {'label': 'Sciences Naturelles', 'value': 'sciences naturelles'},
-                        {'label': 'Programme individualisé ou inconnu', 'value': 'inclassable'}
+                        {'label': 'Programme individualisé ou inconnu', 'value': 'programme individualisé ou inconnu'}
                     ]
 stacked_bar_down_options = [
                         {'label': "Niveau d'études", 'value': 'grade'},
@@ -42,7 +43,7 @@ stacked_bar_down_options = [
                     ]
 
 # Create the Dash app
-app = dash.Dash(__name__, server=server)
+app = dash.Dash(__name__)
 
 # Navbar
 navbar = html.Nav(
@@ -55,43 +56,43 @@ navbar = html.Nav(
                     className="navlink-container",
                     children=[
                         dcc.Link(
-                            html.Span("Home", title="Click to go back to the Home page"),
+                            html.Span("Accueil", title="Cliquez pour revenir à la page d'accueil"),
                             href="/",
                             className="navlink",
                             id="navlink-home",
                         ),
                         dcc.Link(
-                            html.Span("Stacked Area Chart", title="Click to display the Stacked Area Chart page"),
+                            html.Span("Stacked Area Chart", title="Cliquez pour afficher les Stacked Area Chart page"),
                             href="/stacked-area",
                             className="navlink",
                             id="navlink-stacked-area",
                         ),
                         dcc.Link(
-                            html.Span("Stacked Bar Chart", title="Click to display the Stacked Bar Charts"),
+                            html.Span("Stacked Bar Chart", title="Cliquez pour afficher les Stacked Bar Charts"),
                             href="/stacked-bar",
                             className="navlink",
                             id="navlink-stacked-bar",
                         ),
                         dcc.Link(
-                            html.Span("Radar Chart", title="Click to display the Radar Charts"),
+                            html.Span("Radar Chart", title="Cliquez pour afficher les Radar Charts"),
                             href="/radar",
                             className="navlink",
                             id="navlink-radar",
                         ),
                         dcc.Link(
-                            html.Span("Sunburst Chart", title="Click to display the Sunburst Charts"),
+                            html.Span("Sunburst Chart", title="Cliquez pour afficher les Sunburst Charts"),
                             href="/sunburst",
                             className="navlink",
                             id="navlink-sunburst",
                         ),
                         dcc.Link(
-                            html.Span("Back to Back Bar Chart", title="Click to display the Back to Back Bar Charts"),
+                            html.Span("Back to Back Bar Chart", title="Cliquez pour afficher les Back to Back Bar Charts"),
                             href="/back-to-back-bar",
                             className="navlink",
                             id="navlink-back-to-back-bar",
                         ),
                         dcc.Link(
-                            html.Span("Box Plot", title="Click to display the Box Plots"),
+                            html.Span("Box Plot", title="Cliquez pour afficher les Box Plots"),
                             href="/box-plots",
                             className="navlink",
                             id="navlink-box-plots",
@@ -107,22 +108,36 @@ navbar = html.Nav(
 footer = html.Footer(
     className="footer",
     children=[
-        html.P("This web app was developed as a project in the awesome INF8808E course at Polytechnique Montréal."),
+        html.P("Cette application Web a été développée en tant que projet dans le cadre du cours INF8808E de Polytechnic Montréal."),
     ],
 )
 
 # App layout
+
+#image_path = "assets/header.jpg"
+
+def welcome_page():
+    return html.Div(className='welcome-page-container', children=[
+        html.Div(className='content', children=[
+            html.Div(className='welcome-title', children=[
+                'Études supérieures dans les universités québécoises entre 2000 et 2022'
+            ])
+        ]),
+    ])
+
+
 app.layout = html.Div(
     className="app-container",
     children=[
         dcc.Location(id="url", refresh=False),
-        html.Header(navbar),
+        html.Header([
+            welcome_page(),  
+            navbar,
+        ]),
         html.Div(id="page-content"),
         footer,
     ],
-    #style={"position": "relative", "min-height": "100vh"},
 )
-
 
 #for css in external_css:
     #app.css.append_css({"external_url": css})
@@ -143,8 +158,7 @@ app.css.external_stylesheets = external_css
 def update_navlink_styles(pathname):
     return callback.update_navlink_styles(pathname)
 
-# Update page content based on URL pathname
-# Update page content based on URL pathname
+
 # Update page content based on URL pathname
 @app.callback(Output("page-content", "children"), Input("url", "pathname"))
 def render_page_content(pathname):
@@ -152,22 +166,31 @@ def render_page_content(pathname):
         return html.Div(
             className="home-content",
             children=[
-                html.H1("Tracer les horizons du savoir : Un parcours visuel de la recherche supérieure au Québec"),
-                html.P("This is a sample home page created using Dash."),
-                html.H2("Quebec's universities have become renowned hubs of academic excellence, attracting a diverse array of students from around the world. Our project endeavors to visually explore the rich tapestry of theses and dissertations produced within these institutions. By analyzing trends and changes over time, we aim to uncover valuable insights into the landscape of graduate studies. The project's dashboard provides information on degree distributions, university affiliations, and disciplinary patterns from 2000 to 2022. Our target users include researchers, university administrators, libraries, funding institutions, research consultants, academic publications, graduate students, prospective students, and the general public. By gaining a deeper understanding of the research landscape, users can make informed decisions, track emerging trends, and contribute to the advancement of knowledge in Quebec's academic community."),
+                html.H1(
+                    "Tracer les horizons du savoir : Un parcours visuel de la recherche en études supérieures au Québec"),
                 html.P(
-                    "This is a simple web application built with Dash. "
-                    "It demonstrates how to create multiple pages and navigate between them."
-                ),
-                html.H2("Instructions"),
+                    "PROJET INF8808 - 2022/2023"),
+                html.H2(
+                    "Les universités québécoises sont devenues des établissements réputés pour leur excellence académique, attirant un large éventail d'étudiants du monde entier. Notre projet vise à explorer visuellement la riche tapisserie des thèses et mémoires produits au sein de ces institutions. En analysant les tendances et les changements au fil du temps, nous visons à découvrir des informations précieuses sur le domaine des études supérieures. Le tableau de bord du projet fournit des informations sur la répartition des diplômes, les affiliations universitaires et les tendances disciplinaires de 2000 à 2022. Nos utilisateurs cibles sont les chercheurs, les administrateurs d'université, les bibliothèques, les institutions de financement, les consultants en recherche, les publications universitaires, les étudiants diplômés, les futurs étudiants et le grand public. En acquérant une meilleure compréhension du milieu de la recherche, les utilisateurs peuvent prendre des décisions éclairées, suivre les tendances émergentes et contribuer à l'avancement des connaissances au sein de la communauté universitaire québécoise."),
                 html.P(
-                    "1. Click on the 'Go to About Page' link to navigate to the About page."
-                ),
+                    "Les visualisations réalisées peuvent être classées en deux sections, la première étant consacrée aux tendances temporelles de l'évolution des publications au fil des ans et la seconde à la présentation de la répartition du nombre de publications à un niveau plus granulaire. Pour plus d'informations, lisez les sections ci-dessous."),
+                html.H2(
+                    "Section 1", className="Section 1"),
                 html.P(
-                    "2. On the About page, click on the 'Go to Home Page' link to return to the Home page."
-                ),
-            ],          
-            style={"text-align": "center", "margin-top": "50px"}
+                    "Stacked Area chart : affiche les tendances temporelles du nombre de publications en fonction de variables majeures telles que les domaines, les universités, les langues et les niveaux d'études. Ces informations peuvent être affichées en mode pourcentage ou comptage."),
+                html.P(
+                    "Back to back chart : présente l'évolution de la répartition des langues entre les années et les diplômes ( maîtrise et doctorat) dans les universités québécoises entre 2000 et 2022."),
+                html.P(
+                    "Box plot : montre l'évolution de la longueur des publications au fil des années en fonction des niveaux d'études, des domaines ou des langues."),
+                html.H2(
+                    "Section 2", className="Section 2"),
+                html.P(
+                    "Stacked bar chart : donne un aperçu de la répartition des langues, des diplômes, des universités ou même du nombre de pages dans les différentes disciplines qui ont été catégorisées en fonction du domaine principal."),
+                html.P(
+                    "Radar chart : présente des informations relatives aux différents types de diplômes ( Maîtrise et doctorat). Ces informations peuvent être visualisées sur différentes universités ou sur les plus importantes disciplines existantes."),
+                html.P(
+                    "Sunburst chart : vise à montrer la répartition des langues des documents en fonction des domaines ou des universités."),
+            ]
         )
     elif pathname == "/stacked-area":
         return html.Div(
@@ -283,21 +306,21 @@ def render_page_content(pathname):
             value="tab-master",
             children=[
                 dcc.Tab(
-                    label="Distribution of English and French for Dissertation",
+                    label="Distribution de l'anglais et du français pour la dissertation",
                     value="tab-master",
                     children=[
                         dcc.Graph(
-                            id='btb-graph-master',
+                            id='btb-graph',
                             figure=back_to_back(df,'maîtrise')
                         ),
                     ],
                 ),
                 dcc.Tab(
-                    label="Distribution of English and French for Thesis",
+                    label="Distribution de l'anglais et du français pour les thèses",
                     value="tab-phd",
                     children=[
                         dcc.Graph(
-                            id='btb-graph-phd',
+                            id='btb-graph',
                             figure= back_to_back(df, 'doctorat')
                         ),
                     ],
@@ -314,14 +337,14 @@ def render_page_content(pathname):
                     value="tab-overview",
                     children=[
                         dcc.Tab(
-                            label="Overview",
+                            label="Vue d'ensemble",
                             value="tab-overview",
                             children=[
                                 dcc.Dropdown(
                                     id="dropdown-value",
                                     options=[
                                         {"label": "Domaine", "value": "domaine"},
-                                        {"label": "Language", "value": "langue"},
+                                        {"label": "Langue", "value": "langue"},
                                     ],
                                     value="domaine",
                                     className="dropdown",
@@ -338,7 +361,7 @@ def render_page_content(pathname):
                                     id="dropdown-value-maitrise-doctorat",
                                     options=[
                                         {"label": "Domaine", "value": "domaine"},
-                                        {"label": "Language", "value": "langue"},
+                                        {"label": "Langue", "value": "langue"},
                                     ],
                                     value="domaine",
                                     className="dropdown",
@@ -374,10 +397,10 @@ def update_radio_buttons(dropdown_value):
                 dcc.RadioItems(
                     id="radio-value",
                     options=[
-                        {"label": "All", "value": "all"},
+                        {"label": "Tous", "value": "all"},
                         {"label": "Sciences Humaines", "value": "sciences humaines"},
                         {"label": "Sciences Naturelles", "value": "sciences naturelles"},
-                        {"label": "Inclassable", "value": "inclassable"},
+                        {"label": "Programme individualisé ou inconnu", "value": "programme individualisé ou inconnu"},
                     ],
                     value="all",
                     className="radio",
@@ -391,10 +414,10 @@ def update_radio_buttons(dropdown_value):
                 dcc.RadioItems(
                     id="radio-value",
                     options=[
-                        {"label": "All", "value": "all"},
+                        {"label": "Toutes", "value": "all"},
                         {"label": "Français", "value": "fr"},
                         {"label": "Anglais", "value": "en"},
-                        {"label": "Others", "value": "others"},
+                        {"label": "Autres", "value": "others"},
                     ],
                     value="all",
                     className="radio",
@@ -412,19 +435,29 @@ def update_radio_buttons(dropdown_value):
 )
 def update_overview_content(dropdown_value, radio_value):
     filtered_df = df
-
+    context_title =""
+  
     if dropdown_value == "domaine":
+        context_title = " dans tous les domaines"
         if radio_value != "all":
             filtered_df = filtered_df[filtered_df["domaine"] == radio_value]
+            context_title = " dans les " + str(radio_value)
+            if radio_value == "programme individualisé ou inconnu":
+                context_title = " dans les programmes individualisés ou inconnus"
+
     elif dropdown_value == "langue":
+        context_title = " rédigés dans toutes les langues"
         if radio_value == "fr":
             filtered_df = filtered_df[filtered_df["langue"] == "fr"]
+            context_title = " rédigés en Français"
         elif radio_value == "en":
             filtered_df = filtered_df[filtered_df["langue"] == "en"]
+            context_title = " rédigés en Anglais"
         elif radio_value == "others":
             filtered_df = filtered_df[df["langue"].isin(["es", "it", "de", "pt"])]
+            context_title = " rédigés dans les autres langues"
 
-    fig = overview_box_plot(filtered_df)
+    fig = overview_box_plot(filtered_df, context_title)
 
     return dcc.Graph(figure=fig)
 
@@ -442,10 +475,10 @@ def update_radio_buttons_maitrise_doctorat(dropdown_value):
                 dcc.RadioItems(
                     id="radio-value-maitrise-doctorat",
                     options=[
-                        {"label": "All", "value": "all"},
+                        {"label": "Tous", "value": "all"},
                         {"label": "Sciences Humaines", "value": "sciences humaines"},
                         {"label": "Sciences Naturelles", "value": "sciences naturelles"},
-                        {"label": "Inclassable", "value": "inclassable"},
+                        {"label": "Programme individualisé ou inconnu", "value": "programme individualisé ou inconnu"},
                     ],
                     value="all",
                     className="radio",
@@ -459,10 +492,10 @@ def update_radio_buttons_maitrise_doctorat(dropdown_value):
                 dcc.RadioItems(
                     id="radio-value-maitrise-doctorat",
                     options=[
-                        {"label": "All", "value": "all"},
+                        {"label": "Toutes", "value": "all"},
                         {"label": "Français", "value": "fr"},
                         {"label": "Anglais", "value": "en"},
-                        {"label": "Others", "value": "others"},
+                        {"label": "Autres", "value": "others"},
                     ],
                     value="all",
                     className="radio",
@@ -480,13 +513,13 @@ def update_radio_buttons_maitrise_doctorat(dropdown_value):
     Input("radio-value-maitrise-doctorat", "value"),
 )
 def update_maitrise_doctorat_content(dropdown_value, radio_value):
-    
+
     context_title = ""
     filtered_df_maitrise = df[df['grade'] == 'maîtrise']
     filtered_df_doctorat = df[df['grade'] == 'doctorat']
 
     if dropdown_value == "domaine":
-        context_title = " in all domaines"
+        context_title = " dans tous les domaines"
         if radio_value != "all":
             filtered_df_maitrise = filtered_df_maitrise[
                 filtered_df_maitrise["domaine"] == radio_value
@@ -494,11 +527,11 @@ def update_maitrise_doctorat_content(dropdown_value, radio_value):
             filtered_df_doctorat = filtered_df_doctorat[
                 filtered_df_doctorat["domaine"] == radio_value
             ]
-            context_title = " in " + str(radio_value)
-            if radio_value == "inclassable":
-                context_title = " in other and personalized domaines"
+            context_title = " dans les " + str(radio_value)
+            if radio_value == "programme individualisé ou inconnu":
+                context_title = " dans les programmes individualisés ou inconnus"
     elif dropdown_value == "langue":
-        context_title = " written in all languages"
+        context_title = " rédigés dans toutes les langues"
         if radio_value == "fr":
             filtered_df_maitrise = filtered_df_maitrise[
                 filtered_df_maitrise["langue"] == "fr"
@@ -506,7 +539,7 @@ def update_maitrise_doctorat_content(dropdown_value, radio_value):
             filtered_df_doctorat = filtered_df_doctorat[
                 filtered_df_doctorat["langue"] == "fr"
             ]
-            context_title = " written in French (en Français)"
+            context_title = " rédigés en Français"
         elif radio_value == "en":
             filtered_df_maitrise = filtered_df_maitrise[
                 filtered_df_maitrise["langue"] == "en"
@@ -514,7 +547,7 @@ def update_maitrise_doctorat_content(dropdown_value, radio_value):
             filtered_df_doctorat = filtered_df_doctorat[
                 filtered_df_doctorat["langue"] == "en"
             ]
-            context_title = " written in English (en Anglais)"
+            context_title = " rédigés en Anglais"
         elif radio_value == "others":
             filtered_df_maitrise = filtered_df_maitrise[
                 df["langue"].isin(["es", "it", "de", "pt"])
@@ -522,7 +555,7 @@ def update_maitrise_doctorat_content(dropdown_value, radio_value):
             filtered_df_doctorat = filtered_df_doctorat[
                 df["langue"].isin(["es", "it", "de", "pt"])
             ]
-            context_title = " written in other languages"
+            context_title = " rédigés dans les autres langues"
 
     fig = mvd_box_plot(filtered_df_maitrise, filtered_df_doctorat, context_title)
 
@@ -584,4 +617,21 @@ def update_radar_chart(n_clicks, dropdown_univ_discipline_value):
         return figure
     else:
         default_figure = init_figure()
-        return default_figure       
+        return default_figure 
+# back to back
+@app.callback(
+    Output('btb-graph', 'figure'),
+    [Input('button', 'n_clicks')],
+    [State('btb-tabs', 'value')]
+)
+def update_back_to_back_graph(tab_value):
+    if n_clicks is not None:
+        if tab_value == "tab-master":
+            figure = back_to_back(df, 'maîtrise')
+        elif tab_value == "tab-phd":
+            figure = back_to_back(df, 'doctorat')
+
+    else:
+        figure = back_to_back(df, 'maîtrise')
+    figure.update_layout(staticPlot=True)
+    return figure
